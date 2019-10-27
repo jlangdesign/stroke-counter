@@ -1,0 +1,13 @@
+.inputSection {
+  width: 50%;
+  margin-right: 9px;
+}
+
+.instructions {
+  margin-top: 0px;
+}
+
+input {
+  width: 100%;
+  height: 50%;
+}

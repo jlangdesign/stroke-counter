@@ -1,0 +1,10 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 500px) {
+  .layout {
+    flex-direction: row;
+  }
+}
