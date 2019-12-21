@@ -9,15 +9,15 @@ const table = (props) => (
   <div className="tableSection">
     <TableRow
       heading="Original text"
-      text="(Original text)"
+      text={props.original}
       numStrokes="(numStrokes)" />
     <TableRow
       heading="Simplified Chinese"
-      text="(Simplified text)"
+      text={props.simplified}
       numStrokes="(numStrokes)" />
     <TableRow
       heading="Traditional Chinese"
-      text="(Traditional text)"
+      text={props.traditional}
       numStrokes="(numStrokes)" />
   </div>
 );
