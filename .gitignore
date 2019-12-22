@@ -11,6 +11,10 @@
 # production
 /build
 
+# input
+/src/input/UnihanFileIO.class
+/src/input/UnihanFileIO$ChineseChar.class
+
 # misc
 .DS_Store
 .env.local
