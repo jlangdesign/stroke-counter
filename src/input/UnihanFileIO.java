@@ -14,27 +14,6 @@ import java.util.ArrayList;
  */
 public class UnihanFileIO {
 
-  // /**
-  //  * Skips all of the lines of documentation at the top of the files (each line
-  //  * starts with a '#' char).
-  //  *
-  //  * @param in Scanner for file
-  //  * @return line first line of non-documentation content in file
-  //  */
-  // private static String skipDoc(Scanner in) {
-  //   boolean isDoc = true;
-  //   String line = "";
-  //   while (in.hasNextLine() && isDoc) {
-  //     line = in.nextLine();
-  //     if (line.charAt(0) != '#') {
-  //       isDoc = false;
-  //     }
-  //   }
-  //
-  //   // Return first line of the content
-  //   return line;
-  // }
-
   /**
    * Turns a line into a ChineseChar object if the line is usable.
    * Only lines containing "kTotalStrokes", "kSimplifiedVariant", and
@@ -111,22 +90,14 @@ public class UnihanFileIO {
     Scanner strReader = new Scanner(new File("Unihan_DictionaryLikeData.txt"));
     Scanner varReader = new Scanner(new File("Unihan_Variants.txt"));
 
-    // First, skip all of the documentation in both files to get to the first
-    // line of the content (strLine and varLine store first lines of content)
-    // String strLine = skipDoc(strReader);
-    // String varLine = skipDoc(varReader);
-
     // Construct a new ArrayList for holding all of the ChineseChars
     ArrayList<ChineseChar> charList = new ArrayList<ChineseChar>();
 
-    // TODO delete after done debugging
-    // System.out.println("test: " + strLine);
-    // System.out.println("test: " + varLine);
-
-    // Process first line of each file (saved in strLine and varLine) if usable
+    // Process each line in strReader file
     while (strReader.hasNextLine()) {
       String nextLine = strReader.nextLine();
-      System.out.println(nextLine);
+
+      // Ignore lines that are empty or start with '#' (documentation)
       if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
         ChineseChar cc = readChar(strReader.nextLine());
         if (cc != null) {
@@ -134,11 +105,6 @@ public class UnihanFileIO {
         }
       }
     }
-
-    // Then process rest of lines
-    // do {
-    //
-    // } while (strReader.hasNextLine());
 
     // Write lines to new file in JSON format
     try {
@@ -161,19 +127,19 @@ public class UnihanFileIO {
    */
   private static class ChineseChar {
     /** Chinese character */
-    private char ch;
+    private String ch;
     /** Number of strokes in character */
     private int strokes;
     /** Any simplified variants of character */
-    private char[] simp;
+    private String[] simp;
     /** Any traditional variants of character */
-    private char[] trad;
+    private String[] trad;
 
     /**
      * Constructs a Chinese char object.
      */
     public ChineseChar(String unicode, int strNum) {
-      char ch = unicodeToChar(unicode);
+      String ch = unicodeToChar(unicode);
       setCh(ch);
       setStrokes(strNum);
     }
@@ -182,15 +148,15 @@ public class UnihanFileIO {
      * Converts Unicode string to a Chinese character.
      *
      * @param unicode Unicode string
-     * @return char converted from Unicode string
+     * @return char in String form converted from Unicode string
      */
-    private static char unicodeToChar(String unicode) {
-      // TODO fix this - some are too big and are rendering as "?"
+    private static String unicodeToChar(String unicode) {
       int codept = Integer.parseInt(unicode.substring(2), 16);
-      return Character.toChars(codept)[0];
+      char[] ch = Character.toChars(codept);
+      return new String(Character.toChars(codept));
     }
 
-    private void setCh(char ch) {
+    private void setCh(String ch) {
       this.ch = ch;
     }
 
@@ -199,16 +165,17 @@ public class UnihanFileIO {
     }
 
     // TODO dynamically increase size of simp and trad arrays if needed
-    public void setSimp(char ch) {
+    // Is using ArrayList for this also overkill?
+    public void setSimp(String simp) {
 
     }
 
-    public void setTrad(int strokes) {
+    public void setTrad(String trad) {
 
     }
 
     // TODO Define getter methods and toString()
-    public char getCh() {
+    public String getCh() {
       return this.ch;
     }
 
