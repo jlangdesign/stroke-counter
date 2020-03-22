@@ -24,9 +24,10 @@ public class UnihanFileIO {
    * TODO change this in later iteration?
    *
    * @param line line to possibly turn into new char
+   * @param scan Scanner for variant file
    * @return ChineseChar object to add to ArrayList
    */
-  private static ChineseChar readChar(String line) {
+  private static ChineseChar readChar(String line, Scanner scan) {
     Scanner lineScan = new Scanner(line);
 
     try {
@@ -42,6 +43,34 @@ public class UnihanFileIO {
         // TODO
         // Check if the ChineseChar has any simplified or traditional variants,
         // and add them
+
+        // TODO how to stop scanner in time for next char? it will go one line too far
+        // TODO Check if a char can have both a simp and trad variation?
+        // Scan file while it hasNextLine() && both variants !found
+        // Get next line (or current line?) if not documentation or empty line
+        // Check codepoint of 1st token in line
+        // If codepoint < target, keep going
+        // If codepoint = target and field is valid, save info (all tokens)
+        // If codepoint > target, stop (and make simp/trad fields empty?)
+        /*
+        boolean varFound = false;
+        while (scan.hasNextLine() && !varFound) {
+          String line2 = scan.nextLine();
+          if (line2.length() > 0 && line2.charAt(0) != '#') {
+            Scanner s = new Scanner(line2);
+            String u = s.next();
+            String f = s.next();
+            int uniCode = Integer.parseInt(uni.substring(2), 16);
+            int uCode = Integer.parseInt(u.substring(2), 16);
+            if (uCode == uniCode && (f.equals("kTraditionalVariant") || f.equals("kSimplifiedVariant"))) {
+              System.out.println(line2);
+              varFound = true;
+            } else if (uCode > uniCode) {
+              varFound = true;
+            }
+          }
+        }
+        */
 
         // Return new ChineseChar to add to ArrayList
         lineScan.close();
@@ -99,7 +128,7 @@ public class UnihanFileIO {
 
       // Ignore lines that are empty or start with '#' (documentation)
       if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
-        ChineseChar cc = readChar(strReader.nextLine());
+        ChineseChar cc = readChar(nextLine, varReader);
         if (cc != null) {
           charList.add(cc);
         }
@@ -150,7 +179,7 @@ public class UnihanFileIO {
      * @param unicode Unicode string
      * @return char in String form converted from Unicode string
      */
-    private static String unicodeToChar(String unicode) {
+    public static String unicodeToChar(String unicode) {
       int codept = Integer.parseInt(unicode.substring(2), 16);
       char[] ch = Character.toChars(codept);
       return new String(Character.toChars(codept));
@@ -174,13 +203,20 @@ public class UnihanFileIO {
 
     }
 
-    // TODO Define getter methods and toString()
     public String getCh() {
       return this.ch;
     }
 
     public int getStrokes() {
       return this.strokes;
+    }
+
+    public String[] getSimp() {
+      return this.simp;
+    }
+
+    public String[] getTrad() {
+      return this.trad;
     }
 
     /**
