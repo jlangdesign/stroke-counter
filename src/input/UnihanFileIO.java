@@ -16,18 +16,16 @@ public class UnihanFileIO {
 
   /**
    * Turns a line into a ChineseChar object if the line is usable.
-   * Only lines containing "kTotalStrokes", "kSimplifiedVariant", and
-   * "kTraditionalVariant" should be used.
+   * Only lines containing "kTotalStrokes" should be used.
    *
    * Note: If there are two kTotalStrokes values, grab only first one for now.
    * First is preferred for CH, and second is preferred for TW.
    * TODO change this in later iteration?
    *
    * @param line line to possibly turn into new char
-   * @param scan Scanner for variant file
    * @return ChineseChar object to add to ArrayList
    */
-  private static ChineseChar readChar(String line, Scanner scan) {
+  private static ChineseChar readChar(String line) {
     Scanner lineScan = new Scanner(line);
 
     try {
@@ -39,46 +37,12 @@ public class UnihanFileIO {
       if (field.equals("kTotalStrokes")) {
         int strNum = lineScan.nextInt();
         ChineseChar chinChar = new ChineseChar(uni, strNum);
-
-        // TODO
-        // Check if the ChineseChar has any simplified or traditional variants,
-        // and add them
-
-        // TODO how to stop scanner in time for next char? it will go one line too far
-        // TODO Check if a char can have both a simp and trad variation?
-        // Scan file while it hasNextLine() && both variants !found
-        // Get next line (or current line?) if not documentation or empty line
-        // Check codepoint of 1st token in line
-        // If codepoint < target, keep going
-        // If codepoint = target and field is valid, save info (all tokens)
-        // If codepoint > target, stop (and make simp/trad fields empty?)
-        /*
-        boolean varFound = false;
-        while (scan.hasNextLine() && !varFound) {
-          String line2 = scan.nextLine();
-          if (line2.length() > 0 && line2.charAt(0) != '#') {
-            Scanner s = new Scanner(line2);
-            String u = s.next();
-            String f = s.next();
-            int uniCode = Integer.parseInt(uni.substring(2), 16);
-            int uCode = Integer.parseInt(u.substring(2), 16);
-            if (uCode == uniCode && (f.equals("kTraditionalVariant") || f.equals("kSimplifiedVariant"))) {
-              System.out.println(line2);
-              varFound = true;
-            } else if (uCode > uniCode) {
-              varFound = true;
-            }
-          }
-        }
-        */
-
-        // Return new ChineseChar to add to ArrayList
         lineScan.close();
-        return chinChar;
+        return chinChar; // Return new ChineseChar to add to ArrayList
       }
-
       lineScan.close();
       return null;
+
     } catch (Exception e) {
       // Return null if line is invalid
       lineScan.close();
@@ -110,7 +74,11 @@ public class UnihanFileIO {
   }
 
   /**
-   * TODO
+   * Grabs character and stroke count data from Unihan_DictionaryLikeData.txt.
+   * Then grabs simplified and/or traditional variants for each character from
+   * Unihan_Variants.txt. Finally outputs character data into JSON file, where
+   * each object consists of a character, its stroke counts, and any simplified
+   * or traditional variants.
    *
    * @param args command line arguments
    */
@@ -122,14 +90,51 @@ public class UnihanFileIO {
     // Construct a new ArrayList for holding all of the ChineseChars
     ArrayList<ChineseChar> charList = new ArrayList<ChineseChar>();
 
+    // Create arrays for the variant unicode strings and process each line
+    // in varReader file
+    ArrayList<String> uniList =  new ArrayList<String>();
+    ArrayList<String> varList =  new ArrayList<String>();
+    while (varReader.hasNextLine()) {
+      String nextLine = varReader.nextLine();
+
+      // Ignore lines that are empty or start with '#' (documentation)
+      if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
+        String uni = varReader.next();
+        String field = varReader.next();
+        if (field.equals("kTraditionalVariant") || field.equals("kSimplifiedVariant")) {
+          uniList.add(uni);
+          varList.add(field + " " + varReader.nextLine());
+        }
+      }
+    }
+
     // Process each line in strReader file
     while (strReader.hasNextLine()) {
       String nextLine = strReader.nextLine();
 
       // Ignore lines that are empty or start with '#' (documentation)
       if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
-        ChineseChar cc = readChar(nextLine, varReader);
+        ChineseChar cc = readChar(nextLine);
         if (cc != null) {
+          // Check for variants before adding to list
+          if (uniList.contains(cc.getUni())) {
+            String varStr = varList.get(uniList.indexOf(cc.getUni()));
+            Scanner lineScan = new Scanner(varStr);
+            String field = lineScan.next();
+            ArrayList<String> varArr = new ArrayList<String>();
+            while (lineScan.hasNext()) {
+              varArr.add(lineScan.next());
+            }
+
+            if (field.equals("kTraditionalVariant")) {
+              // Set traditional variant(s)
+              cc.setTrad(varArr.toArray(new String[varArr.size()]));
+            } else {
+              // Set simplified variant(s)
+              cc.setSimp(varArr.toArray(new String[varArr.size()]));
+            }
+          }
+
           charList.add(cc);
         }
       }
@@ -157,6 +162,8 @@ public class UnihanFileIO {
   private static class ChineseChar {
     /** Chinese character */
     private String ch;
+    /** Chinese character's unicode string */
+    private String uni;
     /** Number of strokes in character */
     private int strokes;
     /** Any simplified variants of character */
@@ -170,6 +177,7 @@ public class UnihanFileIO {
     public ChineseChar(String unicode, int strNum) {
       String ch = unicodeToChar(unicode);
       setCh(ch);
+      setUni(unicode);
       setStrokes(strNum);
     }
 
@@ -189,22 +197,34 @@ public class UnihanFileIO {
       this.ch = ch;
     }
 
+    private void setUni(String u) {
+      this.uni = u;
+    }
+
     private void setStrokes(int strokes) {
       this.strokes = strokes;
     }
 
-    // TODO dynamically increase size of simp and trad arrays if needed
-    // Is using ArrayList for this also overkill?
-    public void setSimp(String simp) {
-
+    public void setSimp(String[] simp) {
+      this.simp = new String[simp.length];
+      for (int i = 0; i < simp.length; i++) {
+        this.simp[i] = unicodeToChar(simp[i]);
+      }
     }
 
-    public void setTrad(String trad) {
-
+    public void setTrad(String[] trad) {
+      this.trad = new String[trad.length];
+      for (int i = 0; i < trad.length; i++) {
+        this.trad[i] = unicodeToChar(trad[i]);
+      }
     }
 
     public String getCh() {
       return this.ch;
+    }
+
+    public String getUni() {
+      return this.uni;
     }
 
     public int getStrokes() {
@@ -227,7 +247,48 @@ public class UnihanFileIO {
     public String toString() {
       String chStr = "\"character\": \"" + getCh() + "\"";
       String strokesStr = "\"strokes\": " + getStrokes();
-      return "  {\n    " + chStr + ",\n    " + strokesStr + "\n  }";
+      String simpStr = "";
+      String tradStr = "";
+
+      String[] s = getSimp();
+      if (s != null && s.length > 0) {
+        simpStr = "\"simp\": [ ";
+        for (int i = 0; i < s.length; i++) {
+          if (i < s.length - 1) {
+            simpStr += "\"" + s[i] + "\", ";
+          } else {
+            simpStr += "\"" + s[i] + "\" ]";
+          }
+        }
+      }
+
+      String[] t = getTrad();
+      if (t != null && t.length > 0) {
+        tradStr = "\"trad\": [ ";
+        for (int i = 0; i < t.length; i++) {
+          if (i < t.length - 1) {
+            tradStr += "\"" + t[i] + "\", ";
+          } else {
+            tradStr += "\"" + t[i] + "\" ]";
+          }
+        }
+      }
+
+      StringBuilder obj = new StringBuilder();
+      obj.append("  {\n    ");
+      obj.append(chStr);
+      obj.append(",\n    ");
+      obj.append(strokesStr);
+      if (s != null) {
+        obj.append(",\n    ");
+        obj.append(simpStr);
+      }
+      if (t != null) {
+        obj.append(",\n    ");
+        obj.append(tradStr);
+      }
+      obj.append("\n  }");
+      return obj.toString();
     }
   }
 }
