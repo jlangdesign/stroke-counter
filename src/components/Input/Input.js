@@ -4,7 +4,7 @@ import './Input.css';
 
 const input = (props) => (
   <div className="inputSection">
-    <p className="instructions"><strong>Input your text below (only Chinese characters):</strong></p>
+    <p className="instructions"><strong>Input your text below (in Chinese characters):</strong></p>
     <input
       name="text-to-display"
       type="text"

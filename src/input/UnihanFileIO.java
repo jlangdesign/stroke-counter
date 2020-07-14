@@ -59,7 +59,8 @@ public class UnihanFileIO {
   private static void writeJSONFile(ArrayList<ChineseChar> list) throws IOException {
     PrintStream writer = new PrintStream(new File("charData.json"));
 
-    writer.println("{");
+    // writer.println("{");
+    writer.println("[");
     for (int i = 0; i < list.size(); i++) {
       String separator = ",";
       if (i == list.size() - 1) {
@@ -68,7 +69,8 @@ public class UnihanFileIO {
       }
       writer.println(list.get(i).toString() + separator);
     }
-    writer.println("}");
+    // writer.println("}");
+    writer.println("]");
 
     writer.close();
   }

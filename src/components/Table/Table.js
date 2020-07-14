@@ -5,20 +5,20 @@ import TableRow from './TableRow/TableRow';
 
 import './Table.css';
 
-const table = (props) => (
+const table = ({ original, simplified, traditional }) => (
   <div className="tableSection">
     <TableRow
       heading="Original text"
-      text={props.original}
-      numStrokes="(numStrokes)" />
+      text={original.chars}
+      numStrokes={original.strokeCount} />
     <TableRow
       heading="Simplified Chinese"
-      text={props.simplified}
-      numStrokes="(numStrokes)" />
+      text={simplified.chars}
+      numStrokes={simplified.strokeCount} />
     <TableRow
       heading="Traditional Chinese"
-      text={props.traditional}
-      numStrokes="(numStrokes)" />
+      text={traditional.chars}
+      numStrokes={traditional.strokeCount} />
   </div>
 );
 
