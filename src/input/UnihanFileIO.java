@@ -59,8 +59,8 @@ public class UnihanFileIO {
   private static void writeJSONFile(ArrayList<ChineseChar> list) throws IOException {
     PrintStream writer = new PrintStream(new File("charData.json"));
 
-    // writer.println("{");
-    writer.println("[");
+    writer.println("{");
+    // writer.println("[");
     for (int i = 0; i < list.size(); i++) {
       String separator = ",";
       if (i == list.size() - 1) {
@@ -69,8 +69,8 @@ public class UnihanFileIO {
       }
       writer.println(list.get(i).toString() + separator);
     }
-    // writer.println("}");
-    writer.println("]");
+    writer.println("}");
+    // writer.println("]");
 
     writer.close();
   }
@@ -247,7 +247,8 @@ public class UnihanFileIO {
      * @return character as JS object
      */
     public String toString() {
-      String chStr = "\"character\": \"" + getCh() + "\"";
+      // String chStr = "\"character\": \"" + getCh() + "\"";
+      String chStr = "\"" + getCh() + "\": ";
       String strokesStr = "\"strokes\": " + getStrokes();
       String simpStr = "";
       String tradStr = "";
@@ -277,9 +278,10 @@ public class UnihanFileIO {
       }
 
       StringBuilder obj = new StringBuilder();
-      obj.append("  {\n    ");
-      obj.append(chStr);
-      obj.append(",\n    ");
+      // obj.append("  {\n    ");
+      // obj.append(chStr);
+      // obj.append(",\n    ");
+      obj.append("  " + chStr + "{\n    ");
       obj.append(strokesStr);
       if (s != null) {
         obj.append(",\n    ");

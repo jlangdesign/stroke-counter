@@ -1,10 +1,10 @@
 // import React, { useState, useEffect } from 'react';
 import React, { useState } from 'react';
 
+import Axios from '../../axios';
+
 import Input from '../../components/Input/Input';
 import Table from '../../components/Table/Table';
-
-// import charData from '../../input/charData.json';
 
 import './Layout.css';
 
