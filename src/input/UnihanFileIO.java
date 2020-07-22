@@ -101,11 +101,15 @@ public class UnihanFileIO {
 
       // Ignore lines that are empty or start with '#' (documentation)
       if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
-        String uni = varReader.next();
-        String field = varReader.next();
+        Scanner line = new Scanner(nextLine);
+        String uni = line.next();
+        String field = line.next();
         if (field.equals("kTraditionalVariant") || field.equals("kSimplifiedVariant")) {
+          // Read Unicode
           uniList.add(uni);
-          varList.add(field + " " + varReader.nextLine());
+          // Read rest of varReader line into varList
+          int startIdx = (uni + " " + field + " ").length() - 1;
+          varList.add(field + " " + nextLine.substring(startIdx, nextLine.length()));
         }
       }
     }
