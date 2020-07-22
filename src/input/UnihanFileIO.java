@@ -86,7 +86,7 @@ public class UnihanFileIO {
    */
   public static void main(String[] args) throws FileNotFoundException {
     // Create two scanners - one for stroke counts, and the other for variants
-    Scanner strReader = new Scanner(new File("Unihan_DictionaryLikeData.txt"));
+    Scanner strReader = new Scanner(new File("Unihan_IRGSources.txt"));
     Scanner varReader = new Scanner(new File("Unihan_Variants.txt"));
 
     // Construct a new ArrayList for holding all of the ChineseChars
