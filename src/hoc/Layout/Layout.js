@@ -31,8 +31,21 @@ function Layout() {
   const [tradVar, setTradVar] = useState({});
 
   // Calculates the number of strokes in the text passed in
-  const getStrokeCount = (text) => {
-    let count = 0;
+  // const getStrokeCount = (text) => {
+  //   let count = 0;
+  // };
+
+  // Checks if the char is in the general range of the DB characters
+  // (To help reduce number of API calls)
+  const isInRange = (char) => {
+    // Ranges: 3400 - 9FFC, F900 - FAD9, 20000 - 2FA1D, 30000 - 3134A
+    const dec = char.charCodeAt(0); // Unicode val in decimal (not hex)
+    return (
+      (dec >= parseInt('3400', 16) && dec <= parseInt('9FFC', 16))
+      || (dec >= parseInt('F900', 16) && dec <= parseInt('FAD9', 16))
+      || (dec >= parseInt('20000', 16) && dec <= parseInt('2FA1D', 16))
+      || (dec >= parseInt('30000', 16) && dec <= parseInt('3134A', 16))
+    );
   };
 
   // Convert all Chinese chars
@@ -47,21 +60,27 @@ function Layout() {
     for (let i = 0; i < orig.chars.length; i++) {
       // If character is in the DB (is Chinese), then add
       // to stroke count
-      orig.strokeCount++;
+      if (isInRange(orig.chars[i])) {
+        Axios.get(orig.chars[i])
+          .then(res => {
+            orig.strokeCount += res.strokes;
+            // Check if char has simp variants
+            // If so, add first variant to simp.chars and add
+            // any remaining variants to simpVar
+            // Also get stroke count of simp to add
+            // Else, use OG character and stroke count
 
-      // Check if char has simp variants
-      // If so, add first variant to simp.chars and add
-      // any remaining variants to simpVar
-      // Also get stroke count of simp to add
-      // Else, use OG character and stroke count
-
-      // Check if char has trad variants
-      // If so, add first variant to trad.chars and add
-      // any remaining variants to tradVar
-      // Also get stroke count of trad to add
-      // Else, use OG character and stroke count
+            // Check if char has trad variants
+            // If so, add first variant to trad.chars and add
+            // any remaining variants to tradVar
+            // Also get stroke count of trad to add
+            // Else, use OG character and stroke count
+          })
+          .catch(err => {
+            console.log('Non-Chinese characters detected');
+          });
+      }
     }
-
 
     setOrigChars(orig);
 
