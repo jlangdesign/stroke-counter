@@ -61,8 +61,9 @@ function Layout() {
       // If character is in the DB (is Chinese), then add
       // to stroke count
       if (isInRange(orig.chars[i])) {
-        Axios.get(orig.chars[i])
+        Axios.get(`/char-data/${encodeURIComponent(orig.chars[i])}.json`)
           .then(res => {
+            console.log(res);
             orig.strokeCount += res.strokes;
             // Check if char has simp variants
             // If so, add first variant to simp.chars and add
