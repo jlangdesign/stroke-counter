@@ -55,6 +55,9 @@ function Layout() {
     let simp = { ...orig };
     let trad = { ...orig };
 
+    let simpVar = {};
+    let tradVar = {};
+
     // While iterating through chars to get strokeCount,
     // also build simplified and traditional strings
     for (let i = 0; i < orig.chars.length; i++) {
@@ -64,21 +67,55 @@ function Layout() {
         Axios.get(`/char-data/${encodeURIComponent(orig.chars[i])}.json`)
           .then(res => {
             console.log(res);
-            orig.strokeCount += res.strokes;
+            const data = res.data;
+            orig.strokeCount += data.strokes;
             // Check if char has simp variants
-            // If so, add first variant to simp.chars and add
-            // any remaining variants to simpVar
-            // Also get stroke count of simp to add
-            // Else, use OG character and stroke count
+            if (!data.simp) {
+              // If it doesn't (most likely), use OG character and stroke count
+              simp.strokeCount += data.strokes;
+            } else {
+              // If it does, add first variant to simp.chars and add
+              // any remaining variants to simpVar
+              // Also get stroke count of simp to add
+              const simpCh = data.simp[0];
+              Axios.get(`/char-data/${encodeURIComponent(simpCh)}.json`)
+                .then(res => {
+                  simp.strokeCount += res.data.strokes;
+                })
+                .catch(err => {
+                  console.log(`Issue retrieving char data for: ${simpCh}`);
+                });
 
-            // Check if char has trad variants
-            // If so, add first variant to trad.chars and add
-            // any remaining variants to tradVar
-            // Also get stroke count of trad to add
-            // Else, use OG character and stroke count
+              simp.chars = simp.chars.substring(0, Math.max(i - 1, 0))
+                .concat(simpCh).concat(simp.chars.substring(i));
+
+              simpVar[i] = data.simp.filter(c => c !== simpCh);
+            }
+
+            if (!data.trad) {
+              // If it doesn't (most likely), use OG character and stroke count
+              trad.strokeCount += data.strokes;
+            } else {
+              // If it does, add first variant to trad.chars and add
+              // any remaining variants to tradVar
+              // Also get stroke count of trad to add
+              const tradCh = data.trad[0];
+              Axios.get(`/char-data/${encodeURIComponent(tradCh)}.json`)
+                .then(res => {
+                  trad.strokeCount += res.data.strokes;
+                })
+                .catch(err => {
+                  console.log(`Issue retrieving char data for: ${tradCh}`);
+                });
+
+              trad.chars = trad.chars.substring(0, Math.max(i - 1, 0))
+                .concat(tradCh).concat(trad.chars.substring(i));
+
+              tradVar[i] = data.trad.filter(c => c !== tradCh);
+            }
           })
           .catch(err => {
-            console.log('Non-Chinese characters detected');
+            console.log(`Issue retrieving char data for: ${orig.chars[i]}`);
           });
       }
     }
@@ -93,7 +130,11 @@ function Layout() {
     // If multiple traditional versions, add to char picker popup
     setTradChars(trad);
 
+    setSimpVar(simpVar);
+    setTradVar(tradVar);
   };
+
+  console.log(simpChars);
 
   return (
     <div className="layout">

@@ -5,8 +5,9 @@ import TableRow from './TableRow/TableRow';
 
 import './Table.css';
 
-const table = ({ original, simplified, traditional }) => (
-  <div className="tableSection">
+const table = ({ original, simplified, traditional }) => {
+  console.log('simplified', simplified);
+  return (<div className="tableSection">
     <TableRow
       heading="Original text"
       text={original.chars}
@@ -19,7 +20,7 @@ const table = ({ original, simplified, traditional }) => (
       heading="Traditional Chinese"
       text={traditional.chars}
       numStrokes={traditional.strokeCount} />
-  </div>
-);
+  </div>);
+};
 
 export default table;
