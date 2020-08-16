@@ -122,26 +122,65 @@ public class UnihanFileIO {
       if (nextLine.length() > 0 && nextLine.charAt(0) != '#') {
         ChineseChar cc = readChar(nextLine);
         if (cc != null) {
-          // Check for variants before adding to list
-          if (uniList.contains(cc.getUni())) {
-            String varStr = varList.get(uniList.indexOf(cc.getUni()));
-            Scanner lineScan = new Scanner(varStr);
-            String field = lineScan.next();
-            ArrayList<String> varArr = new ArrayList<String>();
-            while (lineScan.hasNext()) {
-              varArr.add(lineScan.next());
-            }
-
-            if (field.equals("kTraditionalVariant")) {
-              // Set traditional variant(s)
-              cc.setTrad(varArr.toArray(new String[varArr.size()]));
-            } else {
-              // Set simplified variant(s)
-              cc.setSimp(varArr.toArray(new String[varArr.size()]));
-            }
-          }
+          // // Check for variants before adding to list
+          // if (uniList.contains(cc.getUni())) {
+          //   String varStr = varList.get(uniList.indexOf(cc.getUni()));
+          //   Scanner lineScan = new Scanner(varStr);
+          //   String field = lineScan.next();
+          //   ArrayList<String> varArr = new ArrayList<String>();
+          //   while (lineScan.hasNext()) {
+          //     varArr.add(lineScan.next());
+          //   }
+          //
+          //   if (field.equals("kTraditionalVariant")) {
+          //     // Set traditional variant(s)
+          //     cc.setTrad(varArr.toArray(new String[varArr.size()]));
+          //   } else {
+          //     // Set simplified variant(s)
+          //     cc.setSimp(varArr.toArray(new String[varArr.size()]));
+          //   }
+          // }
 
           charList.add(cc);
+        }
+      }
+    }
+
+    // Add variants with their stroke counts to list
+    for (ChineseChar c : charList) {
+      // Check for variants before adding to list
+      if (uniList.contains(c.getUni())) {
+        // Get Unicodes for variants
+        String varStr = varList.get(uniList.indexOf(c.getUni()));
+        Scanner lineScan = new Scanner(varStr);
+        String field = lineScan.next();
+        ArrayList<String> varUnis = new ArrayList<String>();
+        while (lineScan.hasNext()) {
+          varUnis.add(lineScan.next());
+        }
+
+        // Create variant chars with their stroke counts
+        ChineseChar[] varChars = new ChineseChar[varUnis.size()];
+        for (int i = 0; i < varChars.length; i++) {
+          String uni = varUnis.get(i);
+
+          // Get index of unicode to get strokes
+          int idx = 0;
+          for (idx = 0; idx < charList.size(); idx++) {
+            if (uni.equals(charList.get(idx).getUni())) {
+              break;
+            }
+          }
+          int strokes = charList.get(idx).getStrokes();
+          varChars[i] = new ChineseChar(uni, strokes);
+        }
+
+        if (field.equals("kTraditionalVariant")) {
+          // Set traditional variant(s)
+          c.setTrad(varChars);
+        } else {
+          // Set simplified variant(s)
+          c.setSimp(varChars);
         }
       }
     }
@@ -173,12 +212,17 @@ public class UnihanFileIO {
     /** Number of strokes in character */
     private int strokes;
     /** Any simplified variants of character */
-    private String[] simp;
+    // private String[] simp;
+    private ChineseChar[] simp;
     /** Any traditional variants of character */
-    private String[] trad;
+    // private String[] trad;
+    private ChineseChar[] trad;
 
     /**
-     * Constructs a Chinese char object.
+     * Constructs a Chinese char object with stroke count.
+     *
+     * @param unicode Unicode string
+     * @param strNum number of strokes
      */
     public ChineseChar(String unicode, int strNum) {
       String ch = unicodeToChar(unicode);
@@ -211,19 +255,33 @@ public class UnihanFileIO {
       this.strokes = strokes;
     }
 
-    public void setSimp(String[] simp) {
-      this.simp = new String[simp.length];
+    public void setSimp(ChineseChar[] simp) {
+      this.simp = new ChineseChar[simp.length];
       for (int i = 0; i < simp.length; i++) {
-        this.simp[i] = unicodeToChar(simp[i]);
+        this.simp[i] = simp[i];
       }
     }
 
-    public void setTrad(String[] trad) {
-      this.trad = new String[trad.length];
+    public void setTrad(ChineseChar[] trad) {
+      this.trad = new ChineseChar[trad.length];
       for (int i = 0; i < trad.length; i++) {
-        this.trad[i] = unicodeToChar(trad[i]);
+        this.trad[i] = trad[i];
       }
     }
+
+    // public void setSimp(String[] simp) {
+    //   this.simp = new String[simp.length];
+    //   for (int i = 0; i < simp.length; i++) {
+    //     this.simp[i] = unicodeToChar(simp[i]);
+    //   }
+    // }
+    //
+    // public void setTrad(String[] trad) {
+    //   this.trad = new String[trad.length];
+    //   for (int i = 0; i < trad.length; i++) {
+    //     this.trad[i] = unicodeToChar(trad[i]);
+    //   }
+    // }
 
     public String getCh() {
       return this.ch;
@@ -237,19 +295,28 @@ public class UnihanFileIO {
       return this.strokes;
     }
 
-    public String[] getSimp() {
+    public ChineseChar[] getSimp() {
       return this.simp;
     }
 
-    public String[] getTrad() {
+    public ChineseChar[] getTrad() {
       return this.trad;
     }
+
+    // public String[] getSimp() {
+    //   return this.simp;
+    // }
+    //
+    // public String[] getTrad() {
+    //   return this.trad;
+    // }
 
     /**
      * Formats the ChineseChar into a JavaScript object.
      *
      * @return character as JS object
      */
+    @Override
     public String toString() {
       // String chStr = "\"character\": \"" + getCh() + "\"";
       String chStr = "\"" + getCh() + "\": ";
@@ -257,26 +324,36 @@ public class UnihanFileIO {
       String simpStr = "";
       String tradStr = "";
 
-      String[] s = getSimp();
+      // String[] s = getSimp();
+      ChineseChar[] s = getSimp();
       if (s != null && s.length > 0) {
         simpStr = "\"simp\": [ ";
         for (int i = 0; i < s.length; i++) {
+          String ch = s[i].getCh();
+          int str = s[i].getStrokes();
           if (i < s.length - 1) {
-            simpStr += "\"" + s[i] + "\", ";
+            // simpStr += "\"" + s[i].getCh() + "\", ";
+            simpStr += "{ \"" + ch + "\": " + str + " }, ";
           } else {
-            simpStr += "\"" + s[i] + "\" ]";
+            // simpStr += "\"" + ch + "\" ]";
+            simpStr += "{ \"" + ch + "\": " + str + " } ]";
           }
         }
       }
 
-      String[] t = getTrad();
+      // String[] t = getTrad();
+      ChineseChar[] t = getTrad();
       if (t != null && t.length > 0) {
         tradStr = "\"trad\": [ ";
         for (int i = 0; i < t.length; i++) {
+          String ch = t[i].getCh();
+          int str = t[i].getStrokes();
           if (i < t.length - 1) {
-            tradStr += "\"" + t[i] + "\", ";
+            // tradStr += "\"" + t[i].getCh() + "\", ";
+            tradStr += "{ \"" + ch + "\": " + str + " }, ";
           } else {
-            tradStr += "\"" + t[i] + "\" ]";
+            // tradStr += "\"" + t[i].getCh() + "\" ]";
+            tradStr += "{ \"" + ch + "\": " + str + " } ]";
           }
         }
       }
