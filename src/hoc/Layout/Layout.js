@@ -78,14 +78,9 @@ function Layout() {
               // any remaining variants to simpVar
               // Also get stroke count of simp to add
               const simpCh = data.simp[0];
-              Axios.get(`/char-data/${encodeURIComponent(simpCh)}.json`)
-                .then(res => {
-                  simp.strokeCount += res.data.strokes;
-                })
-                .catch(err => {
-                  console.log(`Issue retrieving char data for: ${simpCh}`);
-                });
+              simp.strokeCount += simpCh.strokes;
 
+              // TODO debug
               simp.chars = simp.chars.substring(0, Math.max(i - 1, 0))
                 .concat(simpCh).concat(simp.chars.substring(i));
 
@@ -100,14 +95,9 @@ function Layout() {
               // any remaining variants to tradVar
               // Also get stroke count of trad to add
               const tradCh = data.trad[0];
-              Axios.get(`/char-data/${encodeURIComponent(tradCh)}.json`)
-                .then(res => {
-                  trad.strokeCount += res.data.strokes;
-                })
-                .catch(err => {
-                  console.log(`Issue retrieving char data for: ${tradCh}`);
-                });
+              trad.strokeCount += tradCh.strokes;
 
+              // TODO debug
               trad.chars = trad.chars.substring(0, Math.max(i - 1, 0))
                 .concat(tradCh).concat(trad.chars.substring(i));
 
@@ -129,6 +119,7 @@ function Layout() {
     // Convert to all traditional and get number of stokes
     // If multiple traditional versions, add to char picker popup
     setTradChars(trad);
+    console.log(origChars, simpChars, tradChars);
 
     setSimpVar(simpVar);
     setTradVar(tradVar);
