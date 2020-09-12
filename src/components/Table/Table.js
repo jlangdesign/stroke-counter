@@ -5,22 +5,21 @@ import TableRow from './TableRow/TableRow';
 
 import './Table.css';
 
-const table = ({ original, simplified, traditional }) => {
-  console.log('simplified', simplified);
-  return (<div className="tableSection">
+const table = ({ original, simplified, traditional }) => (
+  <div className="tableSection">
     <TableRow
-      heading="Original text"
+      heading="Original text (原)"
       text={original.chars}
       numStrokes={original.strokeCount} />
     <TableRow
-      heading="Simplified Chinese"
+      heading="Simplified Chinese (简)"
       text={simplified.chars}
       numStrokes={simplified.strokeCount} />
     <TableRow
-      heading="Traditional Chinese"
+      heading="Traditional Chinese (繁)"
       text={traditional.chars}
       numStrokes={traditional.strokeCount} />
-  </div>);
-};
+  </div>
+);
 
 export default table;

@@ -119,13 +119,12 @@ function Layout() {
     setTradVar(tradVar);
   };
 
-  console.log(simpChars);
-
   return (
     <div className="layout">
       <Input
         original={origChars.chars}
         changed={(event) => updateDisplayedText(event)}/>
+      <hr className="mobile-layout-divider" />
       <Table
         original={origChars}
         simplified={simpChars}

@@ -1,7 +1,13 @@
 .App {
-  margin: 18px;
+  margin: var(--spacing-1);
 }
 
 h1 {
   text-align: center;
+  font-size: 36px;
+  margin: var(--spacing-1) 0px;
+}
+
+hr {
+  margin-bottom: var(--spacing-1);
 }

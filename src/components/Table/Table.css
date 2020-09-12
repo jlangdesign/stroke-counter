@@ -1,7 +1,14 @@
 .tableSection {
   width: 50%;
-  margin-left: 9px;
-  padding: 6px;
+  margin-left: var(--spacing-1);
+  /* padding: 6px; */
   box-sizing: border-box;
-  border: 1px solid black;
+  /* border: 1px solid black; */
+}
+
+@media (max-width: 768px) {
+  .tableSection {
+    width: 100%;
+    margin-left: 0px;
+  }
 }

@@ -1,0 +1,26 @@
+.tableRow {
+  word-wrap: break-word;
+  background-color: white;
+  padding: 2px 10px;
+  border-radius: 8px;
+  margin-bottom: var(--spacing-1);
+  max-width: 100%;
+  box-shadow: 0px 2px 2px black;
+}
+
+.tableRowTitle, .tableRowText, .tableRowStrokes, .tableRowPlaceholder {
+  margin: 6px 0px;
+}
+
+.tableRowTitle, .tableRowText {
+  color: black;
+}
+
+.tableRowStrokes, .tableRowPlaceholder {
+  color: var(--primary-color);
+}
+
+.tableRowPlaceholder {
+  opacity: 0.5;
+  font-style: italic;
+}

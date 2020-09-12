@@ -7,6 +7,7 @@ function App() {
   return (
     <div className="App">
       <h1>Stroke Counter</h1>
+      <hr />
       <Layout />
     </div>
   );
