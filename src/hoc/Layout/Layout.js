@@ -51,7 +51,7 @@ function Layout() {
   // Convert all Chinese chars
   const updateDisplayedText = (event) => {
     // Set original text
-    let orig = { chars: event.target.value, strokeCount: 0 };
+    let orig = { chars: event.target.value.split(''), strokeCount: 0 };
     let simp = { ...orig };
     let trad = { ...orig };
 
@@ -60,11 +60,11 @@ function Layout() {
 
     // While iterating through chars to get strokeCount,
     // also build simplified and traditional strings
-    for (let i = 0; i < orig.chars.length; i++) {
+    orig.chars.forEach((c, i) => {
       // If character is in the DB (is Chinese), then add
       // to stroke count
-      if (isInRange(orig.chars[i])) {
-        Axios.get(`/char-data/${encodeURIComponent(orig.chars[i])}.json`)
+      if (isInRange(c)) {
+        Axios.get(`/char-data/${encodeURIComponent(c)}.json`)
           .then(res => {
             console.log(res);
             const data = res.data;
@@ -80,11 +80,8 @@ function Layout() {
               const simpCh = data.simp[0];
               simp.strokeCount += simpCh.strokes;
 
-              // TODO debug
-              simp.chars = simp.chars.substring(0, Math.max(i - 1, 0))
-                .concat(simpCh).concat(simp.chars.substring(i));
-
-              simpVar[i] = data.simp.filter(c => c !== simpCh);
+              simp.chars[i] = simpCh;
+              simpVar[i] = data.simp.filter(ch => ch !== simpCh);
             }
 
             if (!data.trad) {
@@ -97,28 +94,25 @@ function Layout() {
               const tradCh = data.trad[0];
               trad.strokeCount += tradCh.strokes;
 
-              // TODO debug
-              trad.chars = trad.chars.substring(0, Math.max(i - 1, 0))
-                .concat(tradCh).concat(trad.chars.substring(i));
-
-              tradVar[i] = data.trad.filter(c => c !== tradCh);
+              trad.chars[i] = tradCh;
+              tradVar[i] = data.trad.filter(ch => ch !== tradCh);
             }
           })
           .catch(err => {
-            console.log(`Issue retrieving char data for: ${orig.chars[i]}`);
+            console.log(`Issue retrieving char data for: ${c}`);
           });
       }
-    }
+    });
 
-    setOrigChars(orig);
+    setOrigChars({ chars: orig.chars.join(''), strokeCount: orig.strokeCount });
 
     // Convert to all simplified and get number of stokes
     // If multiple simplified versions, add to char picker popup
-    setSimpChars(simp);
+    setSimpChars({ chars: simp.chars.join(''), strokeCount: simp.strokeCount });
 
     // Convert to all traditional and get number of stokes
     // If multiple traditional versions, add to char picker popup
-    setTradChars(trad);
+    setTradChars({ chars: trad.chars.join(''), strokeCount: trad.strokeCount });
     console.log(origChars, simpChars, tradChars);
 
     setSimpVar(simpVar);
