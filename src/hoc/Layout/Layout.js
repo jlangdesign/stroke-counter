@@ -51,12 +51,15 @@ function Layout() {
   // Convert all Chinese chars
   const updateDisplayedText = (event) => {
     // Set original text
+    // Cannot use { ...orig } because changing simp or trad chars changes OG!
     let orig = { chars: event.target.value.split(''), strokeCount: 0 };
-    let simp = { ...orig };
-    let trad = { ...orig };
+    let simp = { chars: [...orig.chars], strokeCount: 0 };
+    let trad = { chars: [...orig.chars], strokeCount: 0 };
 
     let simpVar = {};
     let tradVar = {};
+
+    let promises = []; // To wait for all results with Promise.all()
 
     // While iterating through chars to get strokeCount,
     // also build simplified and traditional strings
@@ -64,59 +67,62 @@ function Layout() {
       // If character is in the DB (is Chinese), then add
       // to stroke count
       if (isInRange(c)) {
-        Axios.get(`/char-data/${encodeURIComponent(c)}.json`)
-          .then(res => {
-            console.log(res);
-            const data = res.data;
-            orig.strokeCount += data.strokes;
-            // Check if char has simp variants
-            if (!data.simp) {
-              // If it doesn't (most likely), use OG character and stroke count
-              simp.strokeCount += data.strokes;
-            } else {
-              // If it does, add first variant to simp.chars and add
-              // any remaining variants to simpVar
-              // Also get stroke count of simp to add
-              const simpCh = data.simp[0];
-              simp.strokeCount += simpCh.strokes;
+        promises.push(
+          Axios.get(`/char-data/${encodeURIComponent(c)}.json`)
+            .then(res => {
+              // console.log(res);
+              const data = res.data;
+              orig.strokeCount += data.strokes;
+              // Check if char has simp variants
+              if (!data.simp) {
+                // If it doesn't (most likely), use OG character and stroke count
+                simp.strokeCount += data.strokes;
+              } else {
+                // If it does, add first variant to simp.chars and add
+                // any remaining variants to simpVar
+                // Also get stroke count of simp to add
+                const simpCh = Object.keys(data.simp[0])[0];
+                simp.strokeCount += data.simp[0][simpCh];
 
-              simp.chars[i] = simpCh;
-              simpVar[i] = data.simp.filter(ch => ch !== simpCh);
-            }
+                simp.chars[i] = simpCh;
+                simpVar[i] = data.simp.filter(ch => ch !== simpCh);
+              }
 
-            if (!data.trad) {
-              // If it doesn't (most likely), use OG character and stroke count
-              trad.strokeCount += data.strokes;
-            } else {
-              // If it does, add first variant to trad.chars and add
-              // any remaining variants to tradVar
-              // Also get stroke count of trad to add
-              const tradCh = data.trad[0];
-              trad.strokeCount += tradCh.strokes;
+              if (!data.trad) {
+                // If it doesn't (most likely), use OG character and stroke count
+                trad.strokeCount += data.strokes;
+              } else {
+                // If it does, add first variant to trad.chars and add
+                // any remaining variants to tradVar
+                // Also get stroke count of trad to add
+                const tradCh = Object.keys(data.trad[0])[0];
+                trad.strokeCount += data.trad[0][tradCh];
 
-              trad.chars[i] = tradCh;
-              tradVar[i] = data.trad.filter(ch => ch !== tradCh);
-            }
-          })
-          .catch(err => {
-            console.log(`Issue retrieving char data for: ${c}`);
-          });
+                trad.chars[i] = tradCh;
+                tradVar[i] = data.trad.filter(ch => ch !== tradCh);
+              }
+            })
+            .catch(err => {
+              console.log(`Issue retrieving char data for: ${c}`);
+            })
+        );
       }
     });
 
-    setOrigChars({ chars: orig.chars.join(''), strokeCount: orig.strokeCount });
+    Promise.all(promises).then(() => {
+      setOrigChars({ chars: orig.chars.join(''), strokeCount: orig.strokeCount });
 
-    // Convert to all simplified and get number of stokes
-    // If multiple simplified versions, add to char picker popup
-    setSimpChars({ chars: simp.chars.join(''), strokeCount: simp.strokeCount });
+      // Convert to all simplified and get number of stokes
+      // If multiple simplified versions, add to char picker popup
+      setSimpChars({ chars: simp.chars.join(''), strokeCount: simp.strokeCount });
 
-    // Convert to all traditional and get number of stokes
-    // If multiple traditional versions, add to char picker popup
-    setTradChars({ chars: trad.chars.join(''), strokeCount: trad.strokeCount });
-    console.log(origChars, simpChars, tradChars);
+      // Convert to all traditional and get number of stokes
+      // If multiple traditional versions, add to char picker popup
+      setTradChars({ chars: trad.chars.join(''), strokeCount: trad.strokeCount });
 
-    setSimpVar(simpVar);
-    setTradVar(tradVar);
+      setSimpVar(simpVar);
+      setTradVar(tradVar);
+    });
   };
 
   return (
