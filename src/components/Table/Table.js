@@ -1,6 +1,5 @@
 import React from 'react';
 
-// import Auxilliary from '../../hoc/Auxilliary/Auxilliary';
 import TableRow from './TableRow/TableRow';
 
 import './Table.css';
